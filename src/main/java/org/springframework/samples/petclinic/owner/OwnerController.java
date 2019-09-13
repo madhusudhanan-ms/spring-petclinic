@@ -15,7 +15,12 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Span;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.samples.petclinic.visit.VisitRepository;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -37,11 +42,22 @@ import java.util.Map;
  * @author Michael Isvy
  */
 @Controller
+@Component
+@PropertySource("classpath:application.properties")
 class OwnerController {
 
     private static final String VIEWS_OWNER_CREATE_OR_UPDATE_FORM = "owners/createOrUpdateOwnerForm";
     private final OwnerRepository owners;
     private VisitRepository visits;
+
+    @Value("${tag_appName}")
+    private String tagAppName;
+
+    @Value("${tag_Name}")
+    private String tagName;
+
+    @Value("${isConfigEnable}")
+    private Boolean isConfigEnable;
 
 
     public OwnerController(OwnerRepository clinicService, VisitRepository visits) {
@@ -56,6 +72,12 @@ class OwnerController {
 
     @GetMapping("/owners/new")
     public String initCreationForm(Map<String, Object> model) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         Owner owner = new Owner();
         model.put("owner", owner);
         return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
@@ -63,6 +85,12 @@ class OwnerController {
 
     @PostMapping("/owners/new")
     public String processCreationForm(@Valid Owner owner, BindingResult result) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         if (result.hasErrors()) {
             return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
         } else {
@@ -73,12 +101,25 @@ class OwnerController {
 
     @GetMapping("/owners/find")
     public String initFindForm(Map<String, Object> model) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         model.put("owner", new Owner());
         return "owners/findOwners";
     }
 
     @GetMapping("/owners")
     public String processFindForm(Owner owner, BindingResult result, Map<String, Object> model) {
+
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
 
         // allow parameterless GET request for /owners to return all records
         if (owner.getLastName() == null) {
@@ -104,6 +145,12 @@ class OwnerController {
 
     @GetMapping("/owners/{ownerId}/edit")
     public String initUpdateOwnerForm(@PathVariable("ownerId") int ownerId, Model model) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         Owner owner = this.owners.findById(ownerId);
         model.addAttribute(owner);
         return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
@@ -111,6 +158,12 @@ class OwnerController {
 
     @PostMapping("/owners/{ownerId}/edit")
     public String processUpdateOwnerForm(@Valid Owner owner, BindingResult result, @PathVariable("ownerId") int ownerId) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         if (result.hasErrors()) {
             return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
         } else {
@@ -128,6 +181,12 @@ class OwnerController {
      */
     @GetMapping("/owners/{ownerId}")
     public ModelAndView showOwner(@PathVariable("ownerId") int ownerId) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         ModelAndView mav = new ModelAndView("owners/ownerDetails");
         Owner owner = this.owners.findById(ownerId);
         for (Pet pet : owner.getPets()) {

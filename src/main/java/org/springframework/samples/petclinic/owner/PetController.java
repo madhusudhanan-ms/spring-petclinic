@@ -15,6 +15,11 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Span;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.util.StringUtils;
@@ -31,12 +36,23 @@ import java.util.Collection;
  * @author Arjen Poutsma
  */
 @Controller
+@Component
+@PropertySource("classpath:application.properties")
 @RequestMapping("/owners/{ownerId}")
 class PetController {
 
     private static final String VIEWS_PETS_CREATE_OR_UPDATE_FORM = "pets/createOrUpdatePetForm";
     private final PetRepository pets;
     private final OwnerRepository owners;
+
+    @Value("${tag_appName}")
+    private String tagAppName;
+
+    @Value("${tag_Name}")
+    private String tagName;
+
+    @Value("${isConfigEnable}")
+    private Boolean isConfigEnable;
 
     public PetController(PetRepository pets, OwnerRepository owners) {
         this.pets = pets;
@@ -65,6 +81,12 @@ class PetController {
 
     @GetMapping("/pets/new")
     public String initCreationForm(Owner owner, ModelMap model) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         Pet pet = new Pet();
         owner.addPet(pet);
         model.put("pet", pet);
@@ -73,6 +95,12 @@ class PetController {
 
     @PostMapping("/pets/new")
     public String processCreationForm(Owner owner, @Valid Pet pet, BindingResult result, ModelMap model) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         if (StringUtils.hasLength(pet.getName()) && pet.isNew() && owner.getPet(pet.getName(), true) != null){
             result.rejectValue("name", "duplicate", "already exists");
         }
@@ -88,6 +116,12 @@ class PetController {
 
     @GetMapping("/pets/{petId}/edit")
     public String initUpdateForm(@PathVariable("petId") int petId, ModelMap model) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         Pet pet = this.pets.findById(petId);
         model.put("pet", pet);
         return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
@@ -95,6 +129,12 @@ class PetController {
 
     @PostMapping("/pets/{petId}/edit")
     public String processUpdateForm(@Valid Pet pet, BindingResult result, Owner owner, ModelMap model) {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         if (result.hasErrors()) {
             pet.setOwner(owner);
             model.put("pet", pet);

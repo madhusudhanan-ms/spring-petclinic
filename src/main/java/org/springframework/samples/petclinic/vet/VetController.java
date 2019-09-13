@@ -15,6 +15,11 @@
  */
 package org.springframework.samples.petclinic.vet;
 
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Span;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,6 +33,8 @@ import java.util.Map;
  * @author Arjen Poutsma
  */
 @Controller
+@Component
+@PropertySource("classpath:application.properties")
 class VetController {
 
     private final VetRepository vets;
@@ -36,8 +43,24 @@ class VetController {
         this.vets = clinicService;
     }
 
+    @Value("${tag_appName}")
+    private String tagAppName;
+
+    @Value("${tag_Name}")
+    private String tagName;
+
+    @Value("${isConfigEnable}")
+    private Boolean isConfigEnable;
+
     @GetMapping("/vets.html")
     public String showVetList(Map<String, Object> model) {
+        // line to support stacktrace
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         // Here we are returning an object of type 'Vets' rather than a collection of Vet
         // objects so it is simpler for Object-Xml mapping
         Vets vets = new Vets();
@@ -48,6 +71,13 @@ class VetController {
 
     @GetMapping({ "/vets" })
     public @ResponseBody Vets showResourcesVetList() {
+        // line to support stacktrace
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         // Here we are returning an object of type 'Vets' rather than a collection of Vet
         // objects so it is simpler for JSon/Object mapping
         Vets vets = new Vets();

@@ -15,6 +15,11 @@
  */
 package org.springframework.samples.petclinic.system;
 
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Span;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -26,10 +31,27 @@ import org.springframework.web.bind.annotation.GetMapping;
  * Also see how a view that resolves to "error" has been added ("error.html").
  */
 @Controller
+@Component
+@PropertySource("classpath:application.properties")
 class CrashController {
+
+    @Value("${tag_appName}")
+    private String tagAppName;
+
+    @Value("${tag_Name}")
+    private String tagName;
+
+    @Value("${isConfigEnable}")
+    private Boolean isConfigEnable;
 
     @GetMapping("/oups")
     public String triggerException() {
+        if(isConfigEnable){
+            Span span = ElasticApm.currentSpan();
+            span.addLabel("_tag_appName", tagAppName);
+            span.addLabel("_tag_Name", tagName);
+            span.addLabel("_plugin", "stacktrace");
+        }
         throw new RuntimeException("Expected: controller used to showcase what "
                 + "happens when an exception is thrown");
     }
