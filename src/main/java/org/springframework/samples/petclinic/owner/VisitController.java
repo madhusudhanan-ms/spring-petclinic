@@ -19,13 +19,8 @@ import java.util.Map;
 
 import javax.validation.Valid;
 
-import co.elastic.apm.api.ElasticApm;
-import co.elastic.apm.api.Span;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.samples.petclinic.visit.Visit;
 import org.springframework.samples.petclinic.visit.VisitRepository;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -43,21 +38,11 @@ import org.springframework.web.bind.annotation.PostMapping;
  * @author Dave Syer
  */
 @Controller
-@Component
-@PropertySource("classpath:application.properties")
+
 class VisitController {
 
     private final VisitRepository visits;
     private final PetRepository pets;
-
-    @Value("${tag_appName}")
-    private String tagAppName;
-
-    @Value("${tag_Name}")
-    private String tagName;
-
-    @Value("${isConfigEnable}")
-    private Boolean isConfigEnable;
 
     public VisitController(VisitRepository visits, PetRepository pets) {
         this.visits = visits;
@@ -92,24 +77,14 @@ class VisitController {
     // Spring MVC calls method loadPetWithVisit(...) before initNewVisitForm is called
     @GetMapping("/owners/*/pets/{petId}/visits/new")
     public String initNewVisitForm(@PathVariable("petId") int petId, Map<String, Object> model) {
-        if(isConfigEnable){
-            Span span = ElasticApm.currentSpan();
-            span.addLabel("_tag_appName", tagAppName);
-            span.addLabel("_tag_Name", tagName);
-            span.addLabel("_plugin", "stacktrace");
-        }
+
         return "pets/createOrUpdateVisitForm";
     }
 
     // Spring MVC calls method loadPetWithVisit(...) before processNewVisitForm is called
     @PostMapping("/owners/{ownerId}/pets/{petId}/visits/new")
     public String processNewVisitForm(@Valid Visit visit, BindingResult result) {
-        if(isConfigEnable){
-            Span span = ElasticApm.currentSpan();
-            span.addLabel("_tag_appName", tagAppName);
-            span.addLabel("_tag_Name", tagName);
-            span.addLabel("_plugin", "stacktrace");
-        }
+
         if (result.hasErrors()) {
             return "pets/createOrUpdateVisitForm";
         } else {
