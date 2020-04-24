@@ -17,35 +17,15 @@
 package org.springframework.samples.petclinic.system;
 
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import co.elastic.apm.api.ElasticApm;
-import co.elastic.apm.api.Span;
 
 @Controller
-@Component
-@PropertySource("classpath:application.properties")
+
 class WelcomeController {
-    @Value("${tag_appName}")
-    private String tagAppName;
-
-    @Value("${tag_Name}")
-    private String tagName;
-
-    @Value("${isConfigEnable}")
-    private Boolean isConfigEnable;
 
     @GetMapping("/")
     public String welcome() {
-        if(isConfigEnable){
-            Span span = ElasticApm.currentSpan();
-            span.addLabel("_tag_appName", tagAppName);
-            span.addLabel("_tag_Name", tagName);
-            span.addLabel("_plugin", "stacktrace");
-        }
         return "welcome";
     }
 }
